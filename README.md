@@ -1,3 +1,6 @@
+### Please refer for detailed frontend progression: [documentation.md](documentation.md)
+
+
 This is a Kotlin Multiplatform project targeting Desktop (JVM).
 
 * [/composeApp](./composeApp/src) is for code that will be shared across your Compose Multiplatform applications.
