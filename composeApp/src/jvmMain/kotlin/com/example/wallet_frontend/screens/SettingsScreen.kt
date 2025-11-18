@@ -7,27 +7,29 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.wallet_frontend.UserSession
-
-// Import the reusable components we just created
+import com.example.wallet_frontend.network.BudgetApi
+import com.example.wallet_frontend.network.TransactionApi
+import kotlinx.coroutines.launch
 import com.example.wallet_frontend.components.DestructiveSettingRow
 import com.example.wallet_frontend.components.SettingSectionHeader
 import com.example.wallet_frontend.components.SettingRow
-import com.example.wallet_frontend.components.SwitchSettingRow
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen() {
 
-    // --- State ---
-    var isDarkMode by remember { mutableStateOf(false) }
-
-    // Get the current logged-in user
     val currentUser by UserSession.currentUser
+    val userId = currentUser?.userId
 
-    // Show confirmation dialog for logout
     var showLogoutDialog by remember { mutableStateOf(false) }
+    var showDeleteTransactionsDialog by remember { mutableStateOf(false) }
+    var showDeleteBudgetsDialog by remember { mutableStateOf(false) }
 
-    // --- Layout ---
+    var isDeleting by remember { mutableStateOf(false) }
+    var deleteMessage by remember { mutableStateOf<String?>(null) }
+
+    val scope = rememberCoroutineScope()
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -37,6 +39,20 @@ fun SettingsScreen() {
                     titleContentColor = MaterialTheme.colorScheme.onSurface
                 )
             )
+        },
+        snackbarHost = {
+            if (deleteMessage != null) {
+                Snackbar(
+                    modifier = Modifier.padding(16.dp),
+                    action = {
+                        TextButton(onClick = { deleteMessage = null }) {
+                            Text("Dismiss")
+                        }
+                    }
+                ) {
+                    Text(deleteMessage!!)
+                }
+            }
         }
     ) { paddingValues ->
 
@@ -46,7 +62,6 @@ fun SettingsScreen() {
                 .padding(paddingValues)
         ) {
 
-            // --- 1. Profile Section ---
             item {
                 SettingSectionHeader(title = "PROFILE")
             }
@@ -54,19 +69,19 @@ fun SettingsScreen() {
                 SettingRow(
                     title = "First Name",
                     subtitle = currentUser?.firstName ?: "Not available"
-                ) { /* TODO: Show edit dialog */ }
+                ) { /* No action needed */ }
             }
             item {
                 SettingRow(
                     title = "Last Name",
                     subtitle = currentUser?.lastName ?: "Not available"
-                ) { /* TODO: Show edit dialog */ }
+                ) { /* No action needed */ }
             }
             item {
                 SettingRow(
                     title = "Email",
                     subtitle = currentUser?.email ?: "Not available"
-                ) { /* TODO: Show edit dialog */ }
+                ) { /* No action needed */ }
             }
             item {
                 SettingRow(
@@ -74,19 +89,11 @@ fun SettingsScreen() {
                     subtitle = currentUser?.userId?.toString() ?: "Not available"
                 ) { /* No action needed */ }
             }
-            item {
-                SettingRow(
-                    title = "Change Password",
-                    subtitle = "********"
-                ) { /* TODO: Show password change dialog */ }
-            }
 
-            // --- 2. Account Section ---
             item {
                 SettingSectionHeader(title = "ACCOUNT")
             }
             item {
-                // Sign Out Button
                 Button(
                     onClick = { showLogoutDialog = true },
                     modifier = Modifier
@@ -100,40 +107,26 @@ fun SettingsScreen() {
                 }
             }
 
-            // --- 3. Appearance Section ---
-            item {
-                SettingSectionHeader(title = "APPEARANCE")
-            }
-            item {
-                SwitchSettingRow(
-                    title = "Dark Mode",
-                    subtitle = if (isDarkMode) "Enabled" else "Disabled",
-                    isChecked = isDarkMode,
-                    onCheckedChange = { isDarkMode = it }
-                )
-            }
-
-            // --- 4. Data Management Section ---
             item {
                 SettingSectionHeader(title = "DATA MANAGEMENT")
             }
             item {
-                DestructiveSettingRow(title = "Delete All Transactions") {
-                    /* TODO: Show confirmation dialog */
+                DestructiveSettingRow(
+                    title = "Delete All Transactions",
+                    enabled = !isDeleting
+                ) {
+                    showDeleteTransactionsDialog = true
                 }
             }
             item {
-                DestructiveSettingRow(title = "Delete All Budgets") {
-                    /* TODO: Show confirmation dialog */
-                }
-            }
-            item {
-                DestructiveSettingRow(title = "Delete Account") {
-                    /* TODO: Show final confirmation dialog */
+                DestructiveSettingRow(
+                    title = "Delete All Budgets",
+                    enabled = !isDeleting
+                ) {
+                    showDeleteBudgetsDialog = true
                 }
             }
 
-            // --- 5. About Section ---
             item {
                 SettingSectionHeader(title = "ABOUT")
             }
@@ -143,7 +136,6 @@ fun SettingsScreen() {
                     subtitle = "1.0.0 (MVP)"
                 ) { /* No action needed */ }
             }
-
             item {
                 SettingRow(
                     title = "Account Created",
@@ -153,7 +145,6 @@ fun SettingsScreen() {
         }
     }
 
-    // --- Logout Confirmation Dialog ---
     if (showLogoutDialog) {
         AlertDialog(
             onDismissRequest = { showLogoutDialog = false },
@@ -174,6 +165,144 @@ fun SettingsScreen() {
             },
             dismissButton = {
                 TextButton(onClick = { showLogoutDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
+    if (showDeleteTransactionsDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteTransactionsDialog = false },
+            title = { Text("Delete All Transactions") },
+            text = {
+                Text("This will permanently delete all your transactions. This action cannot be undone.")
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        if (userId != null) {
+                            isDeleting = true
+                            showDeleteTransactionsDialog = false
+
+                            scope.launch {
+                                try {
+                                    // Fetch all transactions
+                                    val transactions = TransactionApi.getTransactions(userId)
+                                    var deletedCount = 0
+                                    var failedCount = 0
+
+                                    // Delete each transaction
+                                    transactions.forEach { transaction ->
+                                        transaction.transactionId?.let { id ->
+                                            val success = TransactionApi.deleteTransaction(id)
+                                            if (success) deletedCount++ else failedCount++
+                                        }
+                                    }
+
+                                    deleteMessage = if (failedCount == 0) {
+                                        "Successfully deleted $deletedCount transactions"
+                                    } else {
+                                        "Deleted $deletedCount transactions, $failedCount failed"
+                                    }
+                                } catch (e: Exception) {
+                                    deleteMessage = "Error deleting transactions: ${e.message}"
+                                    println("Error: ${e.message}")
+                                } finally {
+                                    isDeleting = false
+                                }
+                            }
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error
+                    ),
+                    enabled = !isDeleting
+                ) {
+                    if (isDeleting) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(16.dp),
+                            color = MaterialTheme.colorScheme.onError
+                        )
+                    } else {
+                        Text("Delete All")
+                    }
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showDeleteTransactionsDialog = false },
+                    enabled = !isDeleting
+                ) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
+    if (showDeleteBudgetsDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteBudgetsDialog = false },
+            title = { Text("Delete All Budgets") },
+            text = {
+                Text("This will permanently delete all your budgets. This action cannot be undone.")
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        if (userId != null) {
+                            isDeleting = true
+                            showDeleteBudgetsDialog = false
+
+                            scope.launch {
+                                try {
+                                    // Fetch all budgets
+                                    val budgets = BudgetApi.getBudgets(userId)
+                                    var deletedCount = 0
+                                    var failedCount = 0
+
+                                    // Delete each budget
+                                    budgets.forEach { budget ->
+                                        budget.budgetId?.let { id ->
+                                            val success = BudgetApi.deleteBudget(id)
+                                            if (success) deletedCount++ else failedCount++
+                                        }
+                                    }
+
+                                    deleteMessage = if (failedCount == 0) {
+                                        "Successfully deleted $deletedCount budgets"
+                                    } else {
+                                        "Deleted $deletedCount budgets, $failedCount failed"
+                                    }
+                                } catch (e: Exception) {
+                                    deleteMessage = "Error deleting budgets: ${e.message}"
+                                    println("Error: ${e.message}")
+                                } finally {
+                                    isDeleting = false
+                                }
+                            }
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error
+                    ),
+                    enabled = !isDeleting
+                ) {
+                    if (isDeleting) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(16.dp),
+                            color = MaterialTheme.colorScheme.onError
+                        )
+                    } else {
+                        Text("Delete All")
+                    }
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showDeleteBudgetsDialog = false },
+                    enabled = !isDeleting
+                ) {
                     Text("Cancel")
                 }
             }

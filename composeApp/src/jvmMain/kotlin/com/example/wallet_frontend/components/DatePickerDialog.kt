@@ -27,7 +27,6 @@ fun DatePickerDialog(
             ) {
                 Text("Select Date", style = MaterialTheme.typography.titleLarge)
 
-                // Show current date
                 OutlinedTextField(
                     value = tempDate.toString(),
                     onValueChange = {},
@@ -36,7 +35,6 @@ fun DatePickerDialog(
                     label = { Text("Date") }
                 )
 
-                // Simple increment/decrement buttons
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Button(onClick = { tempDate = tempDate.minusDays(1) }) {
                         Text("-1 day")
@@ -46,7 +44,6 @@ fun DatePickerDialog(
                     }
                 }
 
-                // Buttons row
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End

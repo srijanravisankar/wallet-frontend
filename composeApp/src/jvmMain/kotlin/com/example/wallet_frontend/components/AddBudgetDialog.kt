@@ -18,7 +18,6 @@ fun AddBudgetDialog(
     onDismiss: () -> Unit,
     onSubmit: (Budget) -> Unit
 ) {
-    // --- State Variables ---
     var budgetLimit by remember { mutableStateOf("") }
     var category by remember { mutableStateOf("") }
     var subCategory by remember { mutableStateOf("") }
@@ -38,11 +37,9 @@ fun AddBudgetDialog(
         "Miscellaneous"
     )
 
-    // --- Validation Error States ---
     var budgetLimitError by remember { mutableStateOf<String?>(null) }
     var categoryError by remember { mutableStateOf<String?>(null) }
 
-    // --- Date Picker State ---
     var startDate by remember { mutableStateOf(LocalDate.now()) }
     var endDate by remember { mutableStateOf(LocalDate.now().plusMonths(1)) }
     var showStartDatePicker by remember { mutableStateOf(false) }
@@ -58,12 +55,9 @@ fun AddBudgetDialog(
         .atOffset(ZoneOffset.UTC)
         .format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
 
-    // Get the user ID from UserSession
-    // Get the user ID from UserSession
     val currentUser = UserSession.currentUser.value
     val userId = currentUser?.userId
 
-    // If no user is logged in, return early
     if (userId == null) {
         return
     }
@@ -74,7 +68,6 @@ fun AddBudgetDialog(
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
 
-                // --- Category Dropdown ---
                 var categoryExpanded by remember { mutableStateOf(false) }
                 ExposedDropdownMenuBox(
                     expanded = categoryExpanded,
@@ -110,7 +103,6 @@ fun AddBudgetDialog(
                     }
                 }
 
-                // --- Optional Subcategory ---
                 OutlinedTextField(
                     value = subCategory,
                     onValueChange = { subCategory = it },
@@ -118,7 +110,6 @@ fun AddBudgetDialog(
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                // --- Budget Limit (positive float only) ---
                 OutlinedTextField(
                     value = budgetLimit,
                     onValueChange = {
@@ -133,7 +124,6 @@ fun AddBudgetDialog(
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                // --- Period Type Dropdown ---
                 var periodTypeExpanded by remember { mutableStateOf(false) }
                 ExposedDropdownMenuBox(
                     expanded = periodTypeExpanded,
@@ -164,7 +154,6 @@ fun AddBudgetDialog(
                     }
                 }
 
-                // --- Start Date Picker ---
                 OutlinedTextField(
                     value = startDate.toString(),
                     onValueChange = {},
@@ -186,7 +175,6 @@ fun AddBudgetDialog(
                     )
                 }
 
-                // --- End Date Picker ---
                 OutlinedTextField(
                     value = endDate.toString(),
                     onValueChange = {},
@@ -208,7 +196,6 @@ fun AddBudgetDialog(
                     )
                 }
 
-                // --- Optional Description ---
                 OutlinedTextField(
                     value = description,
                     onValueChange = { description = it },
@@ -220,7 +207,6 @@ fun AddBudgetDialog(
         confirmButton = {
             Button(
                 onClick = {
-                    // --- Validate ---
                     var valid = true
 
                     if (category.isBlank()) {
@@ -235,7 +221,6 @@ fun AddBudgetDialog(
 
                     if (!valid) return@Button
 
-                    // --- Submit ---
                     onSubmit(
                         Budget(
                             budgetId = null,

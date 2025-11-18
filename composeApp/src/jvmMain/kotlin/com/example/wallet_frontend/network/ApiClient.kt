@@ -10,7 +10,7 @@ val apiClient = HttpClient(CIO) {
     install(ContentNegotiation) {
         json(Json {
             prettyPrint = true
-            ignoreUnknownKeys = true  // Very important when backend adds fields
+            ignoreUnknownKeys = true
         })
     }
 }

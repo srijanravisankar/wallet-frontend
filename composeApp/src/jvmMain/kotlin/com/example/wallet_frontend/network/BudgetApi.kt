@@ -1,7 +1,6 @@
 package com.example.wallet_frontend.network
 
 import com.example.wallet_frontend.models.Budget
-import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
@@ -34,6 +33,17 @@ object BudgetApi {
         } catch (e: Exception) {
             println("Error Posting Budget: ${e}")
             println("Cause: ${e.cause}")
+            e.printStackTrace()
+            false
+        }
+    }
+
+    suspend fun deleteBudget(budgetId: Int): Boolean {
+        return try {
+            val response: HttpResponse = apiClient.delete("$BASE_URL/budgets/$budgetId")
+            response.status == HttpStatusCode.NoContent
+        } catch (e: Exception) {
+            println("Delete budget error: ${e.message}")
             e.printStackTrace()
             false
         }

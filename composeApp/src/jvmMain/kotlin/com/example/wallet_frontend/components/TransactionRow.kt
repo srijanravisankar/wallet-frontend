@@ -1,5 +1,3 @@
-// In composeApp/src/jvmMain/kotlin/com/example/wallet_frontend/components/TransactionRow.kt
-
 package com.example.wallet_frontend.components
 
 import androidx.compose.foundation.background
@@ -20,67 +18,53 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.example.wallet_frontend.models.Transaction // Import the data class we just made
-
-/**
- * This is a "dumb" component for showing a single transaction.
- * It takes a 'transaction' object and displays it.
- *
- * @param transaction The Transaction data to display.
- */
+import com.example.wallet_frontend.models.Transaction
 @Composable
 fun TransactionRow(transaction: Transaction) {
 
-    // We'll use a 'Card' for a modern, slightly-elevated look
     Card(
         modifier = Modifier
-            .fillMaxWidth() // Make the card fill the width
-            .padding(vertical = 4.dp), // Add space between cards
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
-        // 'Row' is the main layout for the card's content
         Row(
             modifier = Modifier
-                .padding(16.dp) // Padding inside the card
+                .padding(16.dp)
                 .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically // Align everything vertically
+            verticalAlignment = Alignment.CenterVertically
         ) {
 
-            // --- 1. The Icon (Left Side) ---
-
-            // Decide the icon and color based on the transaction type
             val icon = if (transaction.transactionType == "income") {
-                Icons.Default.ArrowUpward // Green "Up" arrow
+                Icons.Default.ArrowUpward
             } else {
-                Icons.Default.ArrowDownward // Red "Down" arrow
+                Icons.Default.ArrowDownward
             }
             val iconColor = if (transaction.transactionType == "income") {
-                Color(0xFF00C853) // A nice green
+                Color(0xFF00C853)
             } else {
-                Color(0xFFD50000) // A nice red
+                Color(0xFFD50000)
             }
 
-            // A Box to hold the icon with a colored background
             Box(
                 modifier = Modifier
-                    .size(40.dp) // A fixed 40x40 size
-                    .clip(RoundedCornerShape(8.dp)) // Rounded corners
-                    .background(iconColor.copy(alpha = 0.1f)), // Light, transparent background
-                contentAlignment = Alignment.Center // Center the icon inside the Box
+                    .size(40.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(iconColor.copy(alpha = 0.1f)),
+                contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = icon,
                     contentDescription = transaction.transactionType,
-                    tint = iconColor // Make the icon itself the solid red/green
+                    tint = iconColor
                 )
             }
 
-            Spacer(modifier = Modifier.width(16.dp)) // Space between icon and text
+            Spacer(modifier = Modifier.width(16.dp))
 
-            // --- 2. Title and Category (Middle) ---
             Column(
                 modifier = Modifier
-                    .weight(1f) // This 'weight' makes this column fill all available space
+                    .weight(1f)
             ) {
                 Text(
                     text = transaction.title,
@@ -94,13 +78,11 @@ fun TransactionRow(transaction: Transaction) {
                 )
             }
 
-            Spacer(modifier = Modifier.width(16.dp)) // Space between text and amount
+            Spacer(modifier = Modifier.width(16.dp))
 
-            // --- 3. Amount and Date (Right Side) ---
-            Column(
-                horizontalAlignment = Alignment.End // Align text to the right
+           Column(
+                horizontalAlignment = Alignment.End
             ) {
-                // Format the amount string
                 val amountText = if (transaction.transactionType == "income") {
                     "+$${transaction.amount}"
                 } else {
@@ -114,7 +96,6 @@ fun TransactionRow(transaction: Transaction) {
                     color = iconColor // Use the same red/green color
                 )
                 Text(
-                    // We'll just show the date part (e.g., "2025-11-14")
                     text = transaction.date.substringBefore("T"),
                     style = MaterialTheme.typography.bodySmall,
                     color = Color.Gray

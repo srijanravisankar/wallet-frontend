@@ -1,5 +1,3 @@
-// In composeApp/src/jvmMain/kotlin/com/example/wallet_frontend/screens/BudgetsScreen.kt
-
 package com.example.wallet_frontend.screens
 
 import androidx.compose.foundation.layout.Arrangement
@@ -13,17 +11,15 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.wallet_frontend.UserSession
 import com.example.wallet_frontend.components.AddBudgetDialog
-import com.example.wallet_frontend.components.BudgetCard // Import our new card component
-import com.example.wallet_frontend.models.Budget // Import our new data class
+import com.example.wallet_frontend.components.BudgetCard
+import com.example.wallet_frontend.models.Budget
 import com.example.wallet_frontend.models.Transaction
-import com.example.wallet_frontend.models.User
 import com.example.wallet_frontend.network.BudgetApi
 import com.example.wallet_frontend.network.TransactionApi
 import kotlinx.coroutines.launch
@@ -37,17 +33,13 @@ fun BudgetsScreen() {
     val transactions = remember { mutableStateOf<List<Transaction>>(emptyList()) }
     val showDialog = remember { mutableStateOf(false) }
 
-    // Get the user ID from UserSession
-    // Get the user ID from UserSession
     val currentUser = UserSession.currentUser.value
     val userId = currentUser?.userId
 
-    // If no user is logged in, return early
     if (userId == null) {
         return
     }
 
-    // Fetch both budgets and transactions
     LaunchedEffect(Unit) {
         try {
             val budgetResult = BudgetApi.getBudgets(userId = userId)
@@ -60,14 +52,10 @@ fun BudgetsScreen() {
         }
     }
 
-    // Calculate spending per category from transactions
     val spendingByCategory = remember(transactions.value, budgets.value) {
         transactions.value
-            .filter { it.transactionType == "expense" } // Only expenses
+            .filter { it.transactionType == "expense" }
             .filter { transaction ->
-                // Filter transactions within budget period
-                // You'll need to parse dates and check if transaction.date
-                // falls within each budget's startDate and endDate
                 budgets.value.any { budget ->
                     budget.category == transaction.category
                     // TODO: Add date range check here
@@ -121,12 +109,10 @@ fun BudgetsScreen() {
                 onSubmit = { newTransaction ->
                     showDialog.value = false
 
-                    // Launch a coroutine to POST to backend
                     kotlinx.coroutines.GlobalScope.launch {
                         val success = BudgetApi.addBudget(newTransaction)
 
                         if (success) {
-                            // reload from backend
                             val freshList = BudgetApi.getBudgets(userId = userId)
                             budgets.value = freshList
                         } else {

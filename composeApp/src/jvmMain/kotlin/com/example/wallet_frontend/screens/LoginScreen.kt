@@ -1,5 +1,3 @@
-// Create a new file: composeApp/src/jvmMain/kotlin/com/example/wallet_frontend/screens/LoginScreen.kt
-
 package com.example.wallet_frontend.screens
 
 import androidx.compose.foundation.layout.*
@@ -10,7 +8,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.example.wallet_frontend.UserSession
-import com.example.wallet_frontend.models.LoginRequest
 import com.example.wallet_frontend.models.User
 import com.example.wallet_frontend.network.UserApi
 import kotlinx.coroutines.launch
@@ -181,7 +178,6 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
                     }
                 }
 
-                // Toggle between login and sign up
                 TextButton(
                     onClick = {
                         isSignUpMode = !isSignUpMode

@@ -17,7 +17,6 @@ fun AddTransactionDialog(
     onDismiss: () -> Unit,
     onSubmit: (Transaction) -> Unit
 ) {
-    // --- State Variables ---
     var title by remember { mutableStateOf("") }
     var amount by remember { mutableStateOf("") }
     var category by remember { mutableStateOf("") }
@@ -39,12 +38,10 @@ fun AddTransactionDialog(
         "Miscellaneous"
     )
 
-    // --- Validation Error States ---
     var titleError by remember { mutableStateOf<String?>(null) }
     var amountError by remember { mutableStateOf<String?>(null) }
     var categoryError by remember { mutableStateOf<String?>(null) }
 
-    // --- Date Picker State ---
     val dateFormatter = DateTimeFormatter.ISO_DATE
     var selectedDate by remember { mutableStateOf(LocalDate.now()) }
     var showDatePicker by remember { mutableStateOf(false) }
@@ -54,13 +51,9 @@ fun AddTransactionDialog(
         .atOffset(java.time.ZoneOffset.UTC)
         .format(java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME)
 
-
-    // Get the user ID from UserSession
-    // Get the user ID from UserSession
     val currentUser = UserSession.currentUser.value
     val userId = currentUser?.userId
 
-    // If no user is logged in, return early
     if (userId == null) {
         return
     }
@@ -72,7 +65,6 @@ fun AddTransactionDialog(
 
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
 
-                // --- Title ---
                 OutlinedTextField(
                     value = title,
                     onValueChange = {
@@ -87,7 +79,6 @@ fun AddTransactionDialog(
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                // --- Amount (positive float only) ---
                 OutlinedTextField(
                     value = amount,
                     onValueChange = {
@@ -102,7 +93,6 @@ fun AddTransactionDialog(
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                // --- Category Dropdown ---
                 var categoryExpanded by remember { mutableStateOf(false) }
                 ExposedDropdownMenuBox(
                     expanded = categoryExpanded,
@@ -135,7 +125,6 @@ fun AddTransactionDialog(
                     }
                 }
 
-                // Optional subcategory
                 OutlinedTextField(
                     value = subCategory,
                     onValueChange = { subCategory = it },
@@ -143,7 +132,6 @@ fun AddTransactionDialog(
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                // --- Transaction Type Dropdown ---
                 var typeExpanded by remember { mutableStateOf(false) }
                 ExposedDropdownMenuBox(
                     expanded = typeExpanded,
@@ -174,7 +162,6 @@ fun AddTransactionDialog(
                     }
                 }
 
-                // --- Date Picker Button ---
                 OutlinedTextField(
                     value = selectedDate.toString(),
                     onValueChange = {},
@@ -196,7 +183,6 @@ fun AddTransactionDialog(
                     )
                 }
 
-                // Optional fields:
                 OutlinedTextField(
                     value = description,
                     onValueChange = { description = it },
@@ -216,7 +202,6 @@ fun AddTransactionDialog(
             Button(
                 onClick = {
 
-                    // --- Validate ---
                     var valid = true
 
                     if (title.isBlank()) {
@@ -236,7 +221,6 @@ fun AddTransactionDialog(
 
                     if (!valid) return@Button
 
-                    // --- Submit ---
                     onSubmit(
                         Transaction(
                             transactionId = null,

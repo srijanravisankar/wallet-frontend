@@ -1,8 +1,5 @@
-// Create a new file: composeApp/src/jvmMain/kotlin/com/example/wallet_frontend/network/UserApi.kt
-
 package com.example.wallet_frontend.network
 
-import com.example.wallet_frontend.models.LoginRequest
 import com.example.wallet_frontend.models.User
 import io.ktor.client.call.*
 import io.ktor.client.request.*

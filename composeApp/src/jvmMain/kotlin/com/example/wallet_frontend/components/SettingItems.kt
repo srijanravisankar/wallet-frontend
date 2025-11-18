@@ -1,5 +1,3 @@
-// In composeApp/src/jvmMain/kotlin/com/example/wallet_frontend/components/SettingItems.kt
-
 package com.example.wallet_frontend.components
 
 import androidx.compose.foundation.clickable
@@ -12,13 +10,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
-/**
- * A reusable Composable for a single setting item.
- *
- * @param title The main text of the setting.
- * @param subtitle A description of what the setting does.
- * @param onClick The action to perform when clicked.
- */
 @Composable
 fun SettingRow(
     title: String,
@@ -28,13 +19,12 @@ fun SettingRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick() } // Make the whole row clickable
+            .clickable { onClick() }
             .padding(horizontal = 16.dp, vertical = 20.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // This Column holds the title and subtitle
         Column(
-            modifier = Modifier.weight(1f), // Takes up all available space
+            modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.Center
         ) {
             Text(
@@ -51,14 +41,6 @@ fun SettingRow(
     }
 }
 
-/**
- * A reusable Composable for a setting with a toggle switch.
- *
- * @param title The main text of the setting.
- * @param subtitle A description of what the setting does.
- * @param isChecked The current state of the switch.
- * @param onCheckedChange A (Boolean) -> Unit function called when the switch is toggled.
- */
 @Composable
 fun SwitchSettingRow(
     title: String,
@@ -69,7 +51,7 @@ fun SwitchSettingRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onCheckedChange(!isChecked) } // Click the row to toggle
+            .clickable { onCheckedChange(!isChecked) }
             .padding(horizontal = 16.dp, vertical = 20.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -91,7 +73,6 @@ fun SwitchSettingRow(
 
         Spacer(modifier = Modifier.width(16.dp))
 
-        // The Switch toggle
         Switch(
             checked = isChecked,
             onCheckedChange = onCheckedChange
@@ -99,34 +80,34 @@ fun SwitchSettingRow(
     }
 }
 
-/**
- * A simple Text Composable to be used as a Section Header.
- */
 @Composable
 fun SettingSectionHeader(title: String) {
     Text(
         text = title,
         style = MaterialTheme.typography.labelLarge,
-        color = MaterialTheme.colorScheme.primary, // Use the app's primary color
+        color = MaterialTheme.colorScheme.primary,
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
-            .padding(top = 16.dp) // Add extra space above the header
+            .padding(top = 16.dp)
     )
 }
 
-/**
- * A setting row for dangerous actions, styled in red.
- */
 @Composable
 fun DestructiveSettingRow(
     title: String,
+    enabled: Boolean = true,
     onClick: () -> Unit
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick() }
+            .let {
+                if (enabled)
+                    it.clickable { onClick() }
+                else
+                    it
+            }
             .padding(horizontal = 16.dp, vertical = 20.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -134,7 +115,10 @@ fun DestructiveSettingRow(
             text = title,
             style = MaterialTheme.typography.bodyLarge,
             fontWeight = FontWeight.Medium,
-            color = MaterialTheme.colorScheme.error // Use the "error" color (red)
+            color = if (enabled)
+                MaterialTheme.colorScheme.error
+            else
+                MaterialTheme.colorScheme.error.copy(alpha = 0.4f)
         )
     }
 }
