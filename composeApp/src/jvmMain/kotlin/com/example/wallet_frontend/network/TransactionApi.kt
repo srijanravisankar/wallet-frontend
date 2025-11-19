@@ -49,6 +49,21 @@ object TransactionApi {
         }
     }
 
+    suspend fun updateTransaction(id: Int, updated: Transaction): Boolean {
+        return try {
+            val response = apiClient.put("$BASE_URL/transactions/$id") {
+                contentType(ContentType.Application.Json)
+                setBody(updated)
+            }
+
+            response.status == HttpStatusCode.OK
+        } catch (e: Exception) {
+            println("Update transaction error: ${e.message}")
+            false
+        }
+    }
+
+
 }
 
 

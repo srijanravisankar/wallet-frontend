@@ -21,6 +21,8 @@ import com.example.wallet_frontend.components.TransactionRow
 import com.example.wallet_frontend.models.Transaction
 import com.example.wallet_frontend.network.TransactionApi
 import kotlinx.coroutines.launch
+import com.example.wallet_frontend.components.EditTransactionDialog
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -28,6 +30,8 @@ fun TransactionsScreen() {
 
     val transactions = remember { mutableStateOf<List<Transaction>>(emptyList()) }
     val showDialog = remember { mutableStateOf(false) }
+    val selectedTransaction = remember { mutableStateOf<Transaction?>(null) }
+
 
     val currentUser = UserSession.currentUser.value
     val userId = currentUser?.userId
@@ -75,7 +79,12 @@ fun TransactionsScreen() {
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(transactions.value) { transaction ->
-                TransactionRow(transaction = transaction)
+                TransactionRow(
+                    transaction = transaction,
+                    onClick = {
+                        selectedTransaction.value = transaction
+                    }
+                )
             }
         }
 
@@ -99,5 +108,37 @@ fun TransactionsScreen() {
                 }
             )
         }
+
+        // Edit Transaction Dialog
+        selectedTransaction.value?.let { tx ->
+            EditTransactionDialog(
+                transaction = tx,
+                onDismiss = { selectedTransaction.value = null },
+                onSubmit = { updated ->
+                    kotlinx.coroutines.GlobalScope.launch {
+                        val success = TransactionApi.updateTransaction(
+                            id = updated.transactionId!!,
+                            updated = updated
+                        )
+
+                        if (success) {
+                            transactions.value = TransactionApi.getTransactions(userId)
+                        }
+
+                        selectedTransaction.value = null
+                    }
+                },
+                onDelete = {
+                    kotlinx.coroutines.GlobalScope.launch {
+                        tx.transactionId?.let { id ->
+                            TransactionApi.deleteTransaction(id)
+                        }
+                        transactions.value = TransactionApi.getTransactions(userId)
+                        selectedTransaction.value = null
+                    }
+                }
+            )
+        }
+
     }
 }

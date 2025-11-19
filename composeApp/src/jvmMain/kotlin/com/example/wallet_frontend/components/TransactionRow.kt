@@ -1,6 +1,7 @@
 package com.example.wallet_frontend.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -20,12 +21,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.wallet_frontend.models.Transaction
 @Composable
-fun TransactionRow(transaction: Transaction) {
-
+fun TransactionRow(
+    transaction: Transaction,
+    onClick: (Transaction) -> Unit
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp),
+            .padding(vertical = 4.dp)
+            .clickable { onClick(transaction) },
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Row(
