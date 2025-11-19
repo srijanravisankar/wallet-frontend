@@ -186,7 +186,9 @@ fun PieChartScreen() {
             } else {
                 // Display the chart
                 PieChartWithLegend(
-                    modifier = Modifier.fillMaxWidth().height(300.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .wrapContentHeight(),
                     data = dataToDisplay
                 )
             }
@@ -228,22 +230,22 @@ fun PieChartWithLegend(
 ) {
     val totalValue = data.sumOf { it.second.toDouble() }.toFloat()
 
-    Row(
+    Column(
         modifier = modifier.padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
-        // The Pie Chart
+        // --------------------------
+        // Centered Pie Chart
+        // --------------------------
         if (data.isEmpty()) {
             Box(
-                modifier = Modifier.size(300.dp),
+                modifier = Modifier
+                    .size(300.dp)
+                    .padding(16.dp),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    "No data for this period",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color.Gray
-                )
+                Text("No data for this period", color = Color.Gray)
             }
         } else {
             Canvas(
@@ -270,34 +272,35 @@ fun PieChartWithLegend(
             }
         }
 
-        Spacer(modifier = Modifier.width(16.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
-        // The Legend
+        // --------------------------
+        // Legend BELOW the pie chart
+        // --------------------------
         Column(
-            modifier = Modifier.fillMaxHeight(),
-            verticalArrangement = Arrangement.Center
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp),
+            verticalArrangement = Arrangement.Top
         ) {
             data.forEach { (label, value, color) ->
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(bottom = 8.dp)
+                    modifier = Modifier.padding(bottom = 12.dp)
                 ) {
                     Box(
                         modifier = Modifier
                             .size(20.dp)
-                            .background(color, shape = RoundedCornerShape(2.dp))
+                            .background(color, shape = RoundedCornerShape(4.dp))
                     )
 
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(modifier = Modifier.width(12.dp))
 
                     val percentage = (value / totalValue) * 100
-                    val percentageText = if (totalValue > 0) "(${percentage.toInt()}%)" else ""
-
                     Text(
-                        text = "$label: $${"%.2f".format(value)} $percentageText",
-                        style = MaterialTheme.typography.bodySmall,
-                        fontWeight = FontWeight.Medium,
-                        fontSize = 20.sp
+                        text = "$label: $${"%.2f".format(value)} (${percentage.toInt()}%)",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Medium
                     )
                 }
             }
