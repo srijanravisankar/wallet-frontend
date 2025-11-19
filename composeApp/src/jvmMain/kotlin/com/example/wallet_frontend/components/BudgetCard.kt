@@ -14,30 +14,30 @@ import com.example.wallet_frontend.models.Budget
 import java.math.BigDecimal
 
 @Composable
-fun BudgetCard(budget: Budget, currentSpent: BigDecimal) {
-
+fun BudgetCard(
+    budget: Budget,
+    currentSpent: BigDecimal,
+    modifier: Modifier = Modifier
+) {
     val limit = budget.budgetLimit.toBigDecimalOrNull() ?: BigDecimal.ZERO
     val remaining = limit - currentSpent
     val progress = if (limit > BigDecimal.ZERO) {
         (currentSpent / limit).toFloat()
-    } else {
-        0f
-    }
+    } else 0f
 
-    val progressBarColor = if (progress > 1.0f) {
+    val progressBarColor = if (progress > 1f) {
         MaterialTheme.colorScheme.error
     } else {
         MaterialTheme.colorScheme.primary
     }
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),   // ← use incoming modifier
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
-
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
@@ -59,7 +59,10 @@ fun BudgetCard(budget: Budget, currentSpent: BigDecimal) {
 
             LinearProgressIndicator(
                 progress = { progress },
-                modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(4.dp)),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(8.dp)
+                    .clip(RoundedCornerShape(4.dp)),
                 color = progressBarColor
             )
 
@@ -68,11 +71,11 @@ fun BudgetCard(budget: Budget, currentSpent: BigDecimal) {
             Row(
                 modifier = Modifier.fillMaxWidth()
             ) {
-                val remainingText = if (remaining >= BigDecimal.ZERO) {
-                    "$${remaining.toPlainString()} remaining"
-                } else {
-                    "$${remaining.abs().toPlainString()} over budget"
-                }
+                val remainingText =
+                    if (remaining >= BigDecimal.ZERO)
+                        "$${remaining.toPlainString()} remaining"
+                    else
+                        "$${remaining.abs().toPlainString()} over budget"
 
                 Text(
                     text = remainingText,

@@ -49,6 +49,20 @@ object BudgetApi {
         }
     }
 
+    suspend fun updateBudget(id: Int, updated: Budget): Boolean {
+        return try {
+            val response = apiClient.put("$BASE_URL/budgets/$id") {
+                contentType(ContentType.Application.Json)
+                setBody(updated)
+            }
+            response.status == HttpStatusCode.OK
+        } catch (e: Exception) {
+            println("Update budget error: ${e.message}")
+            false
+        }
+    }
+
+
 }
 
 

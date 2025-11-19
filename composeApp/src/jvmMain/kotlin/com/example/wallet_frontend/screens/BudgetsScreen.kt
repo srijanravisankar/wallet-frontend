@@ -18,12 +18,15 @@ import androidx.compose.ui.unit.dp
 import com.example.wallet_frontend.UserSession
 import com.example.wallet_frontend.components.AddBudgetDialog
 import com.example.wallet_frontend.components.BudgetCard
+import com.example.wallet_frontend.components.EditBudgetDialog
 import com.example.wallet_frontend.models.Budget
 import com.example.wallet_frontend.models.Transaction
 import com.example.wallet_frontend.network.BudgetApi
 import com.example.wallet_frontend.network.TransactionApi
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
+import androidx.compose.foundation.clickable
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -32,6 +35,8 @@ fun BudgetsScreen() {
     val budgets = remember { mutableStateOf<List<Budget>>(emptyList()) }
     val transactions = remember { mutableStateOf<List<Transaction>>(emptyList()) }
     val showDialog = remember { mutableStateOf(false) }
+    val selectedBudget = remember { mutableStateOf<Budget?>(null) }
+
 
     val currentUser = UserSession.currentUser.value
     val userId = currentUser?.userId
@@ -96,11 +101,17 @@ fun BudgetsScreen() {
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             items(budgets.value) { budget ->
-                // Get the actual spending for this budget's category
                 val spent = spendingByCategory[budget.category] ?: BigDecimal.ZERO
 
-                BudgetCard(budget = budget, currentSpent = spent)
+                BudgetCard(
+                    budget = budget,
+                    currentSpent = spent,
+                    modifier = Modifier.clickable {
+                        selectedBudget.value = budget
+                    }
+                )
             }
+
         }
 
         if (showDialog.value) {
@@ -122,5 +133,29 @@ fun BudgetsScreen() {
                 }
             )
         }
+
+        selectedBudget.value?.let { b ->
+            EditBudgetDialog(
+                budget = b,
+                onDismiss = { selectedBudget.value = null },
+                onSubmit = { updated ->
+                    kotlinx.coroutines.GlobalScope.launch {
+                        val success = BudgetApi.updateBudget(b.budgetId!!, updated)
+                        if (success) {
+                            budgets.value = BudgetApi.getBudgets(userId)
+                        }
+                        selectedBudget.value = null
+                    }
+                },
+                onDelete = {
+                    kotlinx.coroutines.GlobalScope.launch {
+                        b.budgetId?.let { id -> BudgetApi.deleteBudget(id) }
+                        budgets.value = BudgetApi.getBudgets(userId)
+                        selectedBudget.value = null
+                    }
+                }
+            )
+        }
+
     }
 }
