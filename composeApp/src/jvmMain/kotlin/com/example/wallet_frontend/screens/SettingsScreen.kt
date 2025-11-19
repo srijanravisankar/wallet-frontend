@@ -13,6 +13,7 @@ import kotlinx.coroutines.launch
 import com.example.wallet_frontend.components.DestructiveSettingRow
 import com.example.wallet_frontend.components.SettingSectionHeader
 import com.example.wallet_frontend.components.SettingRow
+import com.example.wallet_frontend.network.UserApi
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -24,6 +25,9 @@ fun SettingsScreen() {
     var showLogoutDialog by remember { mutableStateOf(false) }
     var showDeleteTransactionsDialog by remember { mutableStateOf(false) }
     var showDeleteBudgetsDialog by remember { mutableStateOf(false) }
+    var showUpdateProfileDialog by remember { mutableStateOf(false) }
+    var showUpdatePasswordDialog by remember { mutableStateOf(false) }
+
 
     var isDeleting by remember { mutableStateOf(false) }
     var deleteMessage by remember { mutableStateOf<String?>(null) }
@@ -83,6 +87,27 @@ fun SettingsScreen() {
                     subtitle = currentUser?.email ?: "Not available"
                 ) { /* No action needed */ }
             }
+            item {
+                Button(
+                    onClick = { showUpdateProfileDialog = true },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                ) {
+                    Text("Update Profile")
+                }
+            }
+            item {
+                Button(
+                    onClick = { showUpdatePasswordDialog = true },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                ) {
+                    Text("Change Password")
+                }
+            }
+
             item {
                 SettingRow(
                     title = "User ID",
@@ -144,6 +169,77 @@ fun SettingsScreen() {
             }
         }
     }
+
+    if (showUpdateProfileDialog && currentUser != null) {
+        var first by remember { mutableStateOf(currentUser!!.firstName) }
+        var last by remember { mutableStateOf(currentUser!!.lastName) }
+        var email by remember { mutableStateOf(currentUser!!.email) }
+
+        AlertDialog(
+            onDismissRequest = { showUpdateProfileDialog = false },
+            title = { Text("Update Profile") },
+            text = {
+                Column {
+                    OutlinedTextField(value = first, onValueChange = { first = it }, label = { Text("First Name") })
+                    OutlinedTextField(value = last, onValueChange = { last = it }, label = { Text("Last Name") })
+                    OutlinedTextField(value = email, onValueChange = { email = it }, label = { Text("Email") })
+                }
+            },
+            confirmButton = {
+                Button(onClick = {
+                    scope.launch {
+                        UserApi.updateUser(
+                            userId!!,
+                            first,
+                            last,
+                            email
+                        )
+                        // update local session
+                        UserSession.updateUser(first, last, email)
+                        showUpdateProfileDialog = false
+                    }
+                }) { Text("Save") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showUpdateProfileDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
+    if (showUpdatePasswordDialog) {
+
+        var oldPass by remember { mutableStateOf("") }
+        var newPass by remember { mutableStateOf("") }
+
+        AlertDialog(
+            onDismissRequest = { showUpdatePasswordDialog = false },
+            title = { Text("Change Password") },
+            text = {
+                Column {
+                    OutlinedTextField(value = oldPass, onValueChange = { oldPass = it }, label = { Text("Old Password") })
+                    OutlinedTextField(value = newPass, onValueChange = { newPass = it }, label = { Text("New Password") })
+                }
+            },
+            confirmButton = {
+                Button(onClick = {
+                    scope.launch {
+                        val success = UserApi.updatePassword(userId!!, oldPass, newPass)
+                        deleteMessage = if (success) "Password Updated" else "Incorrect Password"
+                        showUpdatePasswordDialog = false
+                    }
+                }) { Text("Save") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showUpdatePasswordDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
+
 
     if (showLogoutDialog) {
         AlertDialog(

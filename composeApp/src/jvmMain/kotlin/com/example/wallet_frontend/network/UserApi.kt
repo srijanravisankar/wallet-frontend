@@ -41,4 +41,45 @@ object UserApi {
             false
         }
     }
+
+    suspend fun updateUser(id: Int, first: String, last: String, email: String): Boolean {
+        return try {
+            val body = mapOf(
+                "firstName" to first,
+                "lastName" to last,
+                "email" to email,
+                "password" to "" // ignored by backend
+            )
+
+            val response = apiClient.put("$BASE_URL/users/$id") {
+                contentType(ContentType.Application.Json)
+                setBody(body)
+            }
+
+            response.status == HttpStatusCode.OK
+        } catch (e: Exception) {
+            println("Update user error: ${e.message}")
+            false
+        }
+    }
+
+    suspend fun updatePassword(id: Int, oldPass: String, newPass: String): Boolean {
+        return try {
+            val body = mapOf(
+                "oldPassword" to oldPass,
+                "newPassword" to newPass
+            )
+
+            val response = apiClient.put("$BASE_URL/users/$id/password") {
+                contentType(ContentType.Application.Json)
+                setBody(body)
+            }
+
+            response.status == HttpStatusCode.OK
+        } catch (e: Exception) {
+            println("Update password error: ${e.message}")
+            false
+        }
+    }
+
 }
