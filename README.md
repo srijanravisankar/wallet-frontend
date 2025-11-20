@@ -252,5 +252,217 @@ The application connects to a backend API running at `http://127.0.0.1:8080`. En
 
 ---
 
+## Programming Paradigms Used in This Frontend
+
+This project demonstrates multiple programming paradigms working together in a modern application:
+
+### 1. **Declarative Programming**
+
+The UI is built using Jetpack Compose, which follows a declarative paradigm where you describe *what* the UI should look like, not *how* to build it.
+
+```kotlin
+@Composable
+fun BudgetCard(budget: Budget, currentSpent: BigDecimal) {
+    val limit = budget.budgetLimit.toBigDecimalOrNull() ?: BigDecimal.ZERO
+    val progress = if (limit > BigDecimal.ZERO) {
+        (currentSpent / limit).toFloat()
+    } else 0f
+    
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(text = budget.category)
+            LinearProgressIndicator(progress = { progress })
+            Text(text = "$${currentSpent} / $${limit}")
+        }
+    }
+}
+```
+
+**Why it's declarative**: We describe the UI structure (Card contains Column contains Text and Progress), and Compose handles rendering, updates, and recomposition automatically.
+
+### 2. **Functional Programming**
+
+Kotlin's functional features are used extensively throughout the codebase:
+
+#### Higher-Order Functions (Functions as Parameters)
+```kotlin
+@Composable
+fun SideNavigationPanel(
+    currentSelectedScreen: String,
+    onScreenSelected: (String) -> Unit  // Function as parameter
+) {
+    NavigationRailItem(
+        onClick = { onScreenSelected("Transactions") }  // Lambda expression
+    )
+}
+```
+
+#### Pure Functions & Immutability
+```kotlin
+// Data transformation using map, filter, groupBy
+val spendingByCategory = transactions
+    .filter { it.transactionType == "expense" }
+    .groupBy { it.category }
+    .mapValues { (_, transactionsInCategory) ->
+        transactionsInCategory.sumOf { BigDecimal(it.amount) }
+    }
+```
+
+#### Function Composition
+```kotlin
+val dataToDisplay = remember(transactions, budgets, selectedChartType) {
+    transactions
+        .filter { transaction -> isExpense(transaction) }
+        .groupBy { it.category }
+        .map { (category, txns) -> 
+            Triple(category, txns.sumOf { BigDecimal(it.amount) }.toFloat(), getColor(category))
+        }
+        .sortedByDescending { it.second }
+}
+```
+
+### 3. **Object-Oriented Programming (OOP)**
+
+Uses classes, objects, encapsulation, and data modeling:
+
+#### Singleton Pattern
+```kotlin
+object UserSession {
+    var currentUser = mutableStateOf<User?>(null)
+    
+    fun login(user: User) {
+        currentUser.value = user
+    }
+    
+    fun logout() {
+        currentUser.value = null
+    }
+}
+```
+
+#### Data Classes (Encapsulation)
+```kotlin
+@Serializable
+data class Transaction(
+    val transactionId: Int? = null,
+    val userId: Int,
+    val title: String,
+    val category: String,
+    val transactionType: String,
+    val amount: String
+)
+```
+
+#### Object-Based API Clients
+```kotlin
+object TransactionApi {
+    private const val BASE_URL = "http://127.0.0.1:8080"
+    
+    suspend fun getTransactions(userId: Int): List<Transaction> {
+        return apiClient.get("$BASE_URL/transactions/$userId").body()
+    }
+}
+```
+
+### 4. **Reactive Programming**
+
+State management with automatic UI updates when data changes:
+
+```kotlin
+@Composable
+fun TransactionsScreen() {
+    // Reactive state - UI automatically recomposes when this changes
+    val transactions = remember { mutableStateOf<List<Transaction>>(emptyList()) }
+    val showDialog = remember { mutableStateOf(false) }
+    
+    // Side effect that runs when composable enters composition
+    LaunchedEffect(Unit) {
+        transactions.value = TransactionApi.getTransactions(userId)
+    }
+    
+    // UI automatically updates when transactions.value changes
+    LazyColumn {
+        items(transactions.value) { transaction ->
+            TransactionRow(transaction = transaction)
+        }
+    }
+}
+```
+
+**Key reactive concepts**:
+- `remember` - Preserves state across recompositions
+- `mutableStateOf` - Observable state that triggers recomposition
+- `LaunchedEffect` - Side effects tied to composable lifecycle
+
+### 5. **Asynchronous/Concurrent Programming**
+
+Using Kotlin Coroutines for non-blocking I/O:
+
+```kotlin
+val scope = rememberCoroutineScope()
+
+Button(onClick = {
+    scope.launch {  // Launch coroutine
+        try {
+            val success = TransactionApi.addTransaction(newTransaction)
+            if (success) {
+                transactions.value = TransactionApi.getTransactions(userId)
+            }
+        } catch (e: Exception) {
+            println("Error: ${e.message}")
+        }
+    }
+}) {
+    Text("Add Transaction")
+}
+```
+
+**Suspend functions** for async operations:
+```kotlin
+suspend fun getTransactions(userId: Int): List<Transaction> {
+    return apiClient.get("$BASE_URL/transactions/$userId").body()
+}
+```
+
+### 6. **Event-Driven Programming**
+
+UI interactions drive application behavior through event handlers:
+
+```kotlin
+@Composable
+fun LoginScreen(onLoginSuccess: () -> Unit) {
+    Button(
+        onClick = {  // Event handler for click event
+            scope.launch {
+                val user = UserApi.login(email, password)
+                if (user != null) {
+                    UserSession.login(user)
+                    onLoginSuccess()  // Trigger callback event
+                }
+            }
+        }
+    ) {
+        Text("Login")
+    }
+}
+```
+
+### Paradigm Integration Summary
+
+This frontend application demonstrates how modern applications integrate multiple paradigms:
+
+| Paradigm | Used For | Key Benefit |
+|----------|----------|-------------|
+| **Declarative** | UI composition | Simpler reasoning about UI state |
+| **Functional** | Data transformations | Immutability, composability |
+| **OOP** | Data modeling, API clients | Encapsulation, organization |
+| **Reactive** | State management | Automatic UI updates |
+| **Async** | Network calls | Non-blocking operations |
+| **Event-Driven** | User interactions | Responsive UI |
+
+This **multi-paradigm** approach leverages the strengths of each paradigm to create maintainable, efficient, and user-friendly applications.
+
+---
+
 Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html)
 
