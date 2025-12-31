@@ -1,6 +1,6 @@
 # Wallet Frontend - Personal Finance Management Application
 
-### Please refer for detailed frontend progression: [documentation.md](documentation.md)
+### Please refer backend: (backend repository)[https://github.com/prajithravisankar/wallet-backend]
 
 ## Technology Stack
 
